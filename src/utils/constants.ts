@@ -1,0 +1,9 @@
+export const SYNC_INTERVAL_MS = 5 * 60 * 1000;
+export const SEARCH_DEBOUNCE_MS = 300;
+export const TOAST_DURATION_MS = 3000;
+export const POLL_TIMEOUT_MS = 5 * 60 * 1000;
+export const LOGIN_ALARM_PERIOD_MINUTES = 1;
+export const FAVICON_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+export const NC_BLUE = '#0082C9';
+export const API_PATH = '/apps/bookmarks/public/rest/v2/bookmark';
+export const FOLDER_PATH = '/apps/bookmarks/public/rest/v2/folder';
