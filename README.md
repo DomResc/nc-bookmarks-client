@@ -5,16 +5,11 @@
 
 Chrome/Chromium extension (Manifest V3) acting as a client for the [Nextcloud Bookmarks](https://apps.nextcloud.com/apps/bookmarks) app. Fast search, one-click bookmarking of the current tab, full folder management, automatic sync and light/dark theme.
 
-<!-- SCREENSHOTS — drop the PNGs into docs/screenshots/ and uncomment this block.
-     See docs/screenshots/README.md for what to capture and at which size.
-
 ## Screenshots
 
 | Bookmark list | Quick add | Setup |
 |---------------|-----------|-------|
 | ![Bookmark list with folder tree](docs/screenshots/list.png) | ![Add bookmark modal](docs/screenshots/add.png) | ![Setup screen](docs/screenshots/setup.png) |
-
--->
 
 ## Features
 
