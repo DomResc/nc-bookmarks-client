@@ -417,7 +417,7 @@ async function pollAndAdvanceLoginFlow(): Promise<void> {
   }
 
   try {
-    const result = await apiPollLoginFlow(flow.pollEndpoint, flow.pollToken);
+    const result = await apiPollLoginFlow(flow.serverUrl, flow.pollEndpoint, flow.pollToken);
     if (!result) return; // still pending, retry on the next tick (or the next manual check)
 
     await finalizeLogin(flow.serverUrl, result.loginName, result.appPassword);

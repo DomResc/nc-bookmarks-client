@@ -1,6 +1,20 @@
 # NC Bookmarks — Nextcloud Bookmarks Client
 
+[![CI](https://github.com/domresc/nc-bookmarks-client/actions/workflows/ci.yml/badge.svg)](https://github.com/domresc/nc-bookmarks-client/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 Chrome/Chromium extension (Manifest V3) acting as a client for the [Nextcloud Bookmarks](https://apps.nextcloud.com/apps/bookmarks) app. Fast search, one-click bookmarking of the current tab, full folder management, automatic sync and light/dark theme.
+
+<!-- SCREENSHOTS — drop the PNGs into docs/screenshots/ and uncomment this block.
+     See docs/screenshots/README.md for what to capture and at which size.
+
+## Screenshots
+
+| Bookmark list | Quick add | Setup |
+|---------------|-----------|-------|
+| ![Bookmark list with folder tree](docs/screenshots/list.png) | ![Add bookmark modal](docs/screenshots/add.png) | ![Setup screen](docs/screenshots/setup.png) |
+
+-->
 
 ## Features
 
@@ -27,10 +41,16 @@ npm run clean        # remove dist/
 
 ## Installation in Chrome
 
+The extension is not published on the Chrome Web Store: it is distributed through this repository only.
+
+**From a release (recommended)** — download the `.zip` from the [Releases page](https://github.com/domresc/nc-bookmarks-client/releases/latest) and extract it, then:
+
 1. Go to `chrome://extensions`
 2. Enable **"Developer mode"** (top-right corner)
 3. Click **"Load unpacked"**
-4. Select the project's `dist/` folder
+4. Select the extracted folder
+
+**From source** — run `npm install && npm run build` (see [Build](#build)) and select the project's `dist/` folder at step 4.
 
 The extension appears in the toolbar. On first click the setup screen opens.
 
@@ -183,3 +203,7 @@ Authentication uses the `Authorization: Basic <base64(username:appPassword)>` he
 - **React 18** — `createRoot`, hooks (`useState`, `useEffect`, `useCallback`, `useRef`, `useMemo`)
 - **TailwindCSS v3** — utility-first CSS with `darkMode: 'class'`
 - **Webpack 5** — esbuild-loader for ultra-fast TS/TSX compilation
+
+## License
+
+Released under the [MIT License](LICENSE) — © 2026 Domenico Rescigno.

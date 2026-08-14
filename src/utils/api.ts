@@ -45,6 +45,21 @@ function assertHttps(serverUrl: string): void {
   }
 }
 
+// The login flow URLs come from the server response, so they are untrusted
+// input: a compromised or hostile server could point them at another origin
+// and receive the app password. Both must stay on the configured server.
+function assertSameOrigin(candidate: string, serverUrl: string, label: string): void {
+  let url: URL;
+  try {
+    url = new URL(candidate);
+  } catch {
+    throw new Error(`Invalid ${label} returned by the server`);
+  }
+  if (url.protocol !== 'https:' || url.origin !== new URL(serverUrl).origin) {
+    throw new Error(`Invalid ${label}: origin differs from the configured server`);
+  }
+}
+
 async function apiFetch(
   serverUrl: string,
   credentials: string,
@@ -238,10 +253,14 @@ export async function initiateLoginFlow(serverUrl: string): Promise<{ loginUrl: 
     });
     if (response.ok) {
       const data = await response.json();
+      const loginUrl = data.login;
+      const pollEndpoint = data.poll?.endpoint;
+      assertSameOrigin(loginUrl, cleanUrl, 'login URL');
+      assertSameOrigin(pollEndpoint, cleanUrl, 'poll endpoint');
       return {
-        loginUrl: data.login,
+        loginUrl,
         pollToken: data.poll.token,
-        pollEndpoint: data.poll.endpoint,
+        pollEndpoint,
       };
     }
     if (response.status === 404 && url !== tryPaths[tryPaths.length - 1]) continue;
@@ -250,7 +269,11 @@ export async function initiateLoginFlow(serverUrl: string): Promise<{ loginUrl: 
   throw new Error('Unable to contact the server');
 }
 
-export async function pollLoginFlow(pollEndpoint: string, pollToken: string): Promise<{ server: string; loginName: string; appPassword: string } | null> {
+export async function pollLoginFlow(serverUrl: string, pollEndpoint: string, pollToken: string): Promise<{ server: string; loginName: string; appPassword: string } | null> {
+  // Re-checked at every poll, not just at flow creation: the endpoint is read
+  // back from session storage on each alarm tick, and this request is the one
+  // that actually receives the app password.
+  assertSameOrigin(pollEndpoint, serverUrl, 'poll endpoint');
   const response = await fetch(pollEndpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },

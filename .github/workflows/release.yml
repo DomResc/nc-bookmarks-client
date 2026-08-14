@@ -1,0 +1,56 @@
+name: Release
+
+# Does not run on its own: triggered when you publish a tag, e.g.
+#   git tag v1.1.0 && git push origin v1.1.0
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write # needed only here, to create the release
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      # package.json and manifest.json are kept in sync by hand: if the tag and
+      # the two files diverge, Chrome would install a version other than the one
+      # announced and existing users would silently miss the update. Better to
+      # fail here.
+      - name: Check version alignment
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          PKG=$(node -p "require('./package.json').version")
+          MAN=$(node -p "require('./manifest.json').version")
+          echo "tag=$TAG package.json=$PKG manifest.json=$MAN"
+          if [ "$TAG" != "$PKG" ] || [ "$TAG" != "$MAN" ]; then
+            echo "::error::Version mismatch - tag=$TAG package.json=$PKG manifest.json=$MAN"
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Package extension
+        run: cd dist && zip -r "../nc-bookmarks-client-${GITHUB_REF_NAME}.zip" .
+
+      # gh is preinstalled on the runners: no third-party action is involved
+      # in publishing the artifacts.
+      - name: Publish GitHub release
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes \
+            "nc-bookmarks-client-${GITHUB_REF_NAME}.zip"
+        env:
+          GH_TOKEN: ${{ github.token }}

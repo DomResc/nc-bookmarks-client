@@ -19,8 +19,8 @@ interface DropdownMenuProps {
   align?: 'left' | 'right';
 }
 
-// Le due varianti restano stringhe letterali: il content-scanner JIT di
-// Tailwind legge il sorgente testualmente, non l'output costruito a runtime.
+// Both variants are kept as literal strings: Tailwind's JIT content scanner
+// reads the source as text, not the output built at runtime.
 const HOVER_VISIBILITY_CLASSES: Record<'group-hover' | 'group-hover/folder', string> = {
   'group-hover': 'opacity-0 group-hover:opacity-100 focus-visible:opacity-100',
   'group-hover/folder': 'opacity-0 group-hover/folder:opacity-100 focus-visible:opacity-100',
@@ -57,8 +57,8 @@ export default function DropdownMenu({
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') setOpen(false);
     }
-    // La lista scrollabile riposiziona il pulsante trigger: chiudere il menu
-    // evita che resti ancorato a coordinate ormai obsolete.
+    // The scrollable list moves the trigger button: closing the menu prevents
+    // it from staying anchored to coordinates that are now stale.
     function handleScrollOrResize() {
       setOpen(false);
     }
