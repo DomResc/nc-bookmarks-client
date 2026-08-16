@@ -71,7 +71,11 @@ export default function Popup() {
   }
 
   async function refreshData() {
-    const cache = await chrome.storage.local.get(['bookmarks', 'folders', 'lastSync']);
+    const cache = await chrome.storage.local.get<{
+      bookmarks?: Bookmark[];
+      folders?: Folder[];
+      lastSync?: number;
+    }>(['bookmarks', 'folders', 'lastSync']);
     if (cache.bookmarks) { setBookmarks(cache.bookmarks); setLastSync(cache.lastSync || null); }
     if (cache.folders) setFolders(cache.folders);
   }
@@ -97,7 +101,7 @@ export default function Popup() {
           await loadFromCache();
           if (cancelled) return;
           setLoading(false);
-          const cache = await chrome.storage.local.get('lastSync');
+          const cache = await chrome.storage.local.get<{ lastSync?: number }>('lastSync');
           const stale = !cache.lastSync || cache.lastSync < Date.now() - SYNC_INTERVAL_MS;
           if (stale) {
             setSyncing(true);

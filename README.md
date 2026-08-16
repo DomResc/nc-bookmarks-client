@@ -57,8 +57,7 @@ nc-bookmarks-client/
 ├── package.json                 # Webpack 5 + React 18 + TailwindCSS v3
 ├── tsconfig.json                # TypeScript strict, JSX react-jsx
 ├── webpack.config.js            # Two entries: popup + service-worker
-├── tailwind.config.js           # darkMode: 'class' for manual toggle
-├── postcss.config.js
+├── postcss.config.js            # @tailwindcss/postcss + autoprefixer
 ├── public/icons/                # Extension icons (16/32/48/128px)
 ├── src/
 │   ├── types/index.ts           # TypeScript interfaces (Bookmark, Folder, Message, ...)
@@ -196,7 +195,7 @@ Authentication uses the `Authorization: Basic <base64(username:appPassword)>` he
 - **Manifest V3** — current Chrome Extensions standard
 - **TypeScript 5** — strict type safety, `tsc --noEmit` enforced in the build
 - **React 18** — `createRoot`, hooks (`useState`, `useEffect`, `useCallback`, `useRef`, `useMemo`)
-- **TailwindCSS v3** — utility-first CSS with `darkMode: 'class'`
+- **TailwindCSS v4** — utility-first CSS, dark mode via `@custom-variant dark` (class-based, no config file)
 - **Webpack 5** — esbuild-loader for ultra-fast TS/TSX compilation
 
 ## License

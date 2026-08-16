@@ -2,7 +2,11 @@ import { Bookmark, Folder, Config } from '../types';
 import { decrypt, encrypt } from './crypto';
 
 export async function getConfig(): Promise<Config | null> {
-  const result = await chrome.storage.local.get(['serverUrl', 'username', 'password']);
+  const result = await chrome.storage.local.get<{
+    serverUrl?: string;
+    username?: string;
+    password?: string;
+  }>(['serverUrl', 'username', 'password']);
   if (!result.serverUrl || !result.username || !result.password) return null;
   return {
     serverUrl: result.serverUrl,

@@ -21,7 +21,7 @@ function Favicon({ id }: { id: number }) {
   }, [id]);
 
   if (dataUrl) {
-    return <img src={dataUrl} width={16} height={16} className="rounded-sm shrink-0 object-contain mt-0.5" alt="" />;
+    return <img src={dataUrl} width={16} height={16} className="rounded-xs shrink-0 object-contain mt-0.5" alt="" />;
   }
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"

@@ -24,7 +24,7 @@ Chrome/Chromium MV3 extension (React 18 + strict TypeScript + Tailwind v3) actin
 - The popup **never** calls the Nextcloud API directly — it always reads the local cache; a cache older than 5 minutes triggers a non-blocking background refresh.
 - Cached bookmarks are grouped by **folder ID, not title** (titles are not unique across the tree); transparent migration of older title-based caches exists. When editing a multi-folder bookmark, other memberships are preserved and re-sent (the API PUT replaces the whole folder list).
 - Favicons come from a 7-day TTL cache including negative results, cleared on logout.
-- Dark mode uses Tailwind `darkMode: 'class'`; the only `chrome.storage.sync` value is the theme preference (credentials are never synced).
+- Dark mode uses Tailwind v4's `@custom-variant dark` (CSS-first, no `tailwind.config.js`); the only `chrome.storage.sync` value is the theme preference (credentials are never synced).
 - Only `http:`/`https:` bookmark URLs are opened; other schemes are deliberately rejected.
 - API paths and time thresholds live in `src/utils/constants.ts`; API calls in `src/utils/api.ts`; cache helpers in `src/utils/storage.ts`.
 
