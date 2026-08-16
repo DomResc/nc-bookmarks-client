@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Chrome/Chromium MV3 extension (React 18 + strict TypeScript + Tailwind v3) acting as a client for the Nextcloud Bookmarks app. Bundled with Webpack 5 + esbuild-loader; no backend in this repo.
+Chrome/Chromium MV3 extension (React 18 + strict TypeScript + Tailwind v4) acting as a client for the Nextcloud Bookmarks app. Bundled with Webpack 5 + esbuild-loader; no backend in this repo.
 
 ## Commands
 
@@ -30,5 +30,4 @@ Chrome/Chromium MV3 extension (React 18 + strict TypeScript + Tailwind v3) actin
 
 ## CI gotchas
 
-- Workflows trigger on the `master` branch (default branch; `.github/workflows/ci.yml` and `codeql.yml` were originally filtered on a non-existent `main`). CI runs on all PRs and now on pushes to `master`; CodeQL also runs on the weekly schedule.
 - `ci.yml` uploads the `dist/` build as an artifact for manual Chrome loading.

@@ -54,7 +54,7 @@ The extension appears in the toolbar. On first click the setup screen opens.
 ```
 nc-bookmarks-client/
 ├── manifest.json                # MV3 — permissions, service worker, icons
-├── package.json                 # Webpack 5 + React 18 + TailwindCSS v3
+├── package.json                 # Webpack 5 + React 18 + TailwindCSS v4
 ├── tsconfig.json                # TypeScript strict, JSX react-jsx
 ├── webpack.config.js            # Two entries: popup + service-worker
 ├── postcss.config.js            # @tailwindcss/postcss + autoprefixer
@@ -67,6 +67,7 @@ nc-bookmarks-client/
 │   │   ├── storage.ts           # chrome.storage helpers (config + cache)
 │   │   ├── api.ts               # Nextcloud REST API (bookmarks, folders, favicons, login flow)
 │   │   ├── folderTree.ts        # Flattens the folder tree for <select> pickers
+│   │   ├── format.ts            # Relative time formatting for the UI
 │   │   ├── theme.ts             # Dark mode helpers (cycle, labels, apply/resolve)
 │   │   └── highlight.tsx        # Search match highlighting
 │   ├── background/
