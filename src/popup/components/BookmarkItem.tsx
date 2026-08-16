@@ -36,7 +36,7 @@ function Favicon({ id }: { id: number }) {
 interface BookmarkItemProps {
   bookmark: Bookmark;
   searchQuery: string;
-  onOpen: (url: string) => void;
+  onOpen: (url: string, background: boolean) => void;
   onEdit: (bookmark: Bookmark) => void;
   onDelete: (bookmark: Bookmark) => void;
   showFolderChips?: boolean;
@@ -48,8 +48,17 @@ export default function BookmarkItem({ bookmark, searchQuery, onOpen, onEdit, on
     ? bookmark.url.substring(0, 52) + '...'
     : bookmark.url;
 
-  function handleClick() {
-    if (bookmark.url) onOpen(bookmark.url);
+  function handleClick(e: React.MouseEvent<HTMLDivElement>) {
+    if (e.button !== 0) return;
+    if (bookmark.url) onOpen(bookmark.url, false);
+  }
+
+  function handleAuxClick(e: React.MouseEvent<HTMLDivElement>) {
+    // Middle button: open in a background tab without closing the popup.
+    if (e.button === 1) {
+      e.preventDefault();
+      if (bookmark.url) onOpen(bookmark.url, true);
+    }
   }
 
   return (
@@ -57,7 +66,8 @@ export default function BookmarkItem({ bookmark, searchQuery, onOpen, onEdit, on
       role="button"
       tabIndex={0}
       onClick={handleClick}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (bookmark.url) onOpen(bookmark.url); } }}
+      onAuxClick={handleAuxClick}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (bookmark.url) onOpen(bookmark.url, false); } }}
       className="px-4 py-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors relative group"
     >
       <div className="pr-5 flex gap-2">

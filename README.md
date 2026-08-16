@@ -170,7 +170,7 @@ Authentication uses the `Authorization: Basic <base64(username:appPassword)>` he
 | 3 | Non-HTTPS URL | Enter an `http://` URL | Error "An HTTPS URL is required for security reasons" |
 | 4 | Search | Type in the search bar | Case-insensitive filter, matches highlighted in yellow |
 | 5 | Empty search | Search for a nonexistent string | "No results" message |
-| 6 | Open bookmark | Click an item | URL opened in a new tab |
+| 6 | Open bookmark | Click an item | Left click: URL opened in the current tab (popup closes); middle click: opened in a background tab |
 | 7 | Add bookmark | Click "+" → fill → Save | Prefilled from tab → POST → toast + refresh |
 | 8 | Edit bookmark | "⋯" menu → Edit → change → Save | PUT → toast + refresh |
 | 9 | Multi-folder bookmark | Edit a bookmark belonging to several folders, change primary folder | Other memberships preserved after save |

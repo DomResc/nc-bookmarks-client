@@ -129,7 +129,7 @@ interface FolderTreeNodeProps {
   foldersById: Map<number, Folder>;
   folderTitles: Map<number, string>;
   searchQuery: string;
-  onOpen: (url: string) => void;
+  onOpen: (url: string, background: boolean) => void;
   onEditBookmark: (bookmark: Bookmark) => void;
   onDeleteBookmark: (bookmark: Bookmark) => void;
   onRenameFolder: (folder: Folder) => void;
@@ -287,12 +287,22 @@ export default function BookmarkList({ bookmarks, searchQuery, grouped, folders,
     return map;
   }, [folders]);
 
-  function handleOpen(url: string) {
+  function handleOpen(url: string, background: boolean) {
     // Only web URLs may be opened: bookmark data comes from the network and
     // exotic schemes (javascript:, data:, ...) are rejected here.
     try {
       const protocol = new URL(url).protocol;
-      if (protocol === 'http:' || protocol === 'https:') chrome.tabs.create({ url });
+      if (protocol !== 'http:' && protocol !== 'https:') return;
+      if (background) {
+        chrome.tabs.create({ url, active: false });
+      } else {
+        // Navigate the current tab; fall back to a new tab if the active tab
+        // cannot be navigated (e.g. a chrome:// page). The popup closes either
+        // way, since the bookmark is now in front of the user.
+        chrome.tabs.update({ url })
+          .catch(() => chrome.tabs.create({ url }))
+          .finally(() => window.close());
+      }
     } catch {
       /* malformed URL: ignore */
     }
