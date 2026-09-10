@@ -1,4 +1,4 @@
-import React, { useState, useRef, forwardRef } from 'react';
+import React, { useState, useRef, forwardRef, useEffect } from 'react';
 import { SEARCH_DEBOUNCE_MS } from '../../utils/constants';
 
 interface SearchBarProps {
@@ -8,6 +8,10 @@ interface SearchBarProps {
 const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(function SearchBar({ onSearch }, ref) {
   const [value, setValue] = useState('');
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+  }, []);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const v = e.target.value;

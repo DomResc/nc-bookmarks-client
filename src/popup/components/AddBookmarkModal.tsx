@@ -3,6 +3,7 @@ import { Folder } from '../../types';
 import { flattenFolderTree } from '../../utils/folderTree';
 import Spinner from './Spinner';
 import useModalA11y from '../hooks/useModalA11y';
+import { validateBookmarkUrl } from '../../utils/bookmarkUrl';
 
 interface AddBookmarkModalProps {
   folders: Folder[];
@@ -15,7 +16,7 @@ export default function AddBookmarkModal({ folders, onClose, onSave, onCreateFol
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
   const [tags, setTags] = useState('');
-  const [selectedFolderId, setSelectedFolderId] = useState('');
+  const [selectedFolderId, setSelectedFolderId] = useState('-1');
   const [customFolder, setCustomFolder] = useState('');
   const [newFolderParentId, setNewFolderParentId] = useState('');
   const [useCustomFolder, setUseCustomFolder] = useState(false);
@@ -31,6 +32,10 @@ export default function AddBookmarkModal({ folders, onClose, onSave, onCreateFol
       if (response?.success) {
         setTitle(response.data?.title || '');
         setUrl(response.data?.url || '');
+        const tabUrl = response.data?.url || '';
+        if (tabUrl && validateBookmarkUrl(tabUrl)) {
+          setError('This Chrome page cannot be bookmarked. Enter an HTTP or HTTPS URL.');
+        }
       }
       setLoading(false);
     });
@@ -39,6 +44,8 @@ export default function AddBookmarkModal({ folders, onClose, onSave, onCreateFol
   async function handleSave() {
     if (!title.trim()) { setError('Title is required'); return; }
     if (!url.trim()) { setError('URL is required'); return; }
+    const urlError = validateBookmarkUrl(url.trim());
+    if (urlError) { setError(urlError); return; }
     setSaving(true);
     setError(null);
     try {
@@ -134,7 +141,7 @@ export default function AddBookmarkModal({ folders, onClose, onSave, onCreateFol
                       onChange={(e) => setSelectedFolderId(e.target.value)}
                       className="input-field flex-1"
                     >
-                      <option value="">No folder</option>
+                      <option value="-1">No folder</option>
                       {folderOptions.map((f) => (
                         <option key={f.id} value={String(f.id)}>
                           {f.depth > 0 ? '  '.repeat(f.depth - 1) + '└ ' : ''}{f.title}

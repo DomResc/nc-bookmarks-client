@@ -23,9 +23,10 @@ Chrome/Chromium MV3 extension (React 18 + strict TypeScript + Tailwind v4) actin
 - The service worker keeps **no in-memory state**: `chrome.storage.local` (config, AES-GCM-encrypted credentials, bookmark/favicon caches) and `chrome.storage.session` (login flow) are the source of truth. The popup observes state via `chrome.storage.onChanged`. The login flow is alarm-driven (1-min polling) so it survives popup close.
 - The popup **never** calls the Nextcloud API directly — it always reads the local cache; a cache older than 5 minutes triggers a non-blocking background refresh.
 - Cached bookmarks are grouped by **folder ID, not title** (titles are not unique across the tree); transparent migration of older title-based caches exists. When editing a multi-folder bookmark, other memberships are preserved and re-sent (the API PUT replaces the whole folder list).
+- Folder ID `-1` is Nextcloud's real root/“No folder” membership and may coexist with regular folder IDs; never discard it as an invalid negative ID.
 - Favicons come from a 7-day TTL cache including negative results, cleared on logout.
 - Dark mode uses Tailwind v4's `@custom-variant dark` (CSS-first, no `tailwind.config.js`); the only `chrome.storage.sync` value is the theme preference (credentials are never synced).
-- Only `http:`/`https:` bookmark URLs are opened; other schemes are deliberately rejected.
+- Only valid `http:`/`https:` bookmark URLs may be saved or opened; other schemes are deliberately rejected in both the popup and service worker.
 - API paths and time thresholds live in `src/utils/constants.ts`; API calls in `src/utils/api.ts`; cache helpers in `src/utils/storage.ts`.
 
 ## GitHub automation

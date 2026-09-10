@@ -1,6 +1,7 @@
 import { Bookmark, Folder, Message, MessageResponse, LoginFlowState } from '../types';
 import { getConfig, saveConfig, updateCache, clearCache, clearConfig } from '../utils/storage';
 import { POLL_TIMEOUT_MS, LOGIN_ALARM_PERIOD_MINUTES, FAVICON_TTL_MS } from '../utils/constants';
+import { validateBookmarkUrl } from '../utils/bookmarkUrl';
 import {
   fetchBookmarks,
   fetchFolders,
@@ -22,7 +23,7 @@ const LOGIN_ALARM_NAME = 'login-poll';
 // across the tree, so grouping by ID is the only unambiguous option. The
 // popup resolves titles for display via the cached folder list.
 function resolveBookmarkFolderIds(bookmarks: Bookmark[], folders: Folder[]): Bookmark[] {
-  const validIds = new Set<number>();
+  const validIds = new Set<number>([-1]);
   const titleToId = new Map<string, number>();
   for (const f of folders) {
     validIds.add(f.id);
@@ -101,6 +102,8 @@ async function handleAddBookmark(payload: Record<string, unknown>): Promise<Mess
     const url = payload.url as string;
     const tagsStr = payload.tags as string;
     const foldersStr = payload.folders as string;
+    const urlError = validateBookmarkUrl(url);
+    if (urlError) return { success: false, error: urlError };
     const tags = tagsStr ? tagsStr.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined;
     const folderEntries = foldersStr ? parseFolderInput(foldersStr) : undefined;
 
@@ -134,6 +137,8 @@ async function handleEditBookmark(payload: Record<string, unknown>): Promise<Mes
     const url = payload.url as string;
     const tagsStr = payload.tags as string;
     const foldersStr = payload.folders as string;
+    const urlError = validateBookmarkUrl(url);
+    if (urlError) return { success: false, error: urlError };
     const credentials = getCredentials(config.username, config.password);
 
     const body: { title?: string; url?: string; tags?: string[]; folders?: (string | number)[] } = {};
@@ -485,7 +490,11 @@ chrome.runtime.onMessage.addListener(
       }
     };
 
-    handler().then(sendResponse);
+    handler()
+      .then(sendResponse)
+      .catch((error: unknown) => {
+        sendResponse({ success: false, error: error instanceof Error ? error.message : 'Unexpected extension error' });
+      });
     return true;
   }
 );

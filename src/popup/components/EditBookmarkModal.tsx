@@ -3,6 +3,7 @@ import { Bookmark, Folder } from '../../types';
 import { flattenFolderTree } from '../../utils/folderTree';
 import Spinner from './Spinner';
 import useModalA11y from '../hooks/useModalA11y';
+import { validateBookmarkUrl } from '../../utils/bookmarkUrl';
 
 interface EditBookmarkModalProps {
   bookmark: Bookmark;
@@ -21,7 +22,7 @@ export default function EditBookmarkModal({ bookmark, folders, onClose, onSave, 
   // are preserved untouched on save (the Nextcloud API replaces the whole
   // folder list on PUT, so they must be re-sent explicitly).
   const folderIds = bookmark.folders.filter((f): f is number => typeof f === 'number');
-  const [selectedFolderId, setSelectedFolderId] = useState(folderIds.length > 0 ? String(folderIds[0]) : '');
+  const [selectedFolderId, setSelectedFolderId] = useState(folderIds.length > 0 ? String(folderIds[0]) : '-1');
   const [customFolder, setCustomFolder] = useState('');
   const [newFolderParentId, setNewFolderParentId] = useState('');
   const [useCustomFolder, setUseCustomFolder] = useState(false);
@@ -35,10 +36,12 @@ export default function EditBookmarkModal({ bookmark, folders, onClose, onSave, 
   async function handleSave() {
     if (!title.trim()) { setError('Title is required'); return; }
     if (!url.trim()) { setError('URL is required'); return; }
+    const urlError = validateBookmarkUrl(url.trim());
+    if (urlError) { setError(urlError); return; }
     setSaving(true);
     setError(null);
     try {
-      let primaryId: number | null = selectedFolderId ? Number(selectedFolderId) : null;
+      let primaryId: number | null = selectedFolderId ? Number(selectedFolderId) : -1;
       if (useCustomFolder) {
         if (!customFolder.trim()) { setError('Folder name is required'); setSaving(false); return; }
         primaryId = await onCreateFolder(customFolder.trim(), newFolderParentId ? Number(newFolderParentId) : -1);
@@ -94,7 +97,7 @@ export default function EditBookmarkModal({ bookmark, folders, onClose, onSave, 
                 <select id="edit-folder" value={selectedFolderId} onChange={(e) => setSelectedFolderId(e.target.value)}
                   className="input-field flex-1"
                 >
-                  <option value="">No folder</option>
+                  <option value="-1">No folder</option>
                   {folderOptions.map((f) => (
                     <option key={f.id} value={String(f.id)}>
                       {f.depth > 0 ? '  '.repeat(f.depth - 1) + '└ ' : ''}{f.title}

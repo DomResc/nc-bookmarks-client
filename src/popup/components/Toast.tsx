@@ -45,7 +45,7 @@ export default function Toast({ message, type }: ToastProps) {
       style={{ transform: `translateX(-50%) translateY(${visible ? 0 : -4}px)` }}
     >
       {icon}
-      <span className="truncate">{message}</span>
+      <span className="break-words">{message}</span>
     </div>
   );
 }

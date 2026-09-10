@@ -20,19 +20,19 @@ function bytesToBase64(bytes: Uint8Array): string {
 }
 
 function toFolderEntry(value: unknown): number | string | null {
-  if (typeof value === 'number') return value >= 0 ? value : null;
+  if (typeof value === 'number') return value >= -1 ? value : null;
   if (typeof value === 'string') {
     const n = Number(value);
-    if (!isNaN(n) && n >= 0) return n;
+    if (!isNaN(n) && n >= -1) return n;
     return value;
   }
   if (value && typeof value === 'object') {
     const obj = value as Record<string, unknown>;
     if (typeof obj.title === 'string') return obj.title;
-    if (typeof obj.id === 'number' && obj.id >= 0) return obj.id;
+    if (typeof obj.id === 'number' && obj.id >= -1) return obj.id;
     if (typeof obj.id === 'string') {
       const n = Number(obj.id);
-      return !isNaN(n) && n >= 0 ? n : null;
+      return !isNaN(n) && n >= -1 ? n : null;
     }
   }
   return null;

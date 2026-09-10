@@ -12,6 +12,7 @@ import EditBookmarkModal from './components/EditBookmarkModal';
 import ConfirmDialog from './components/ConfirmDialog';
 import RenameFolderModal from './components/RenameFolderModal';
 import Toast from './components/Toast';
+import { clearFaviconMemoryCache } from './components/BookmarkItem';
 
 function sendMessage(action: string, payload?: Record<string, unknown>): Promise<MessageResponse> {
   return new Promise((resolve, reject) => {
@@ -46,16 +47,17 @@ export default function Popup() {
 
   // Edit/delete state
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
-  const [deletingBookmark, setDeletingBookmark] = useState<Bookmark | null>(null);
+  const [deletingBookmark, setDeletingBookmark] = useState<{ bookmark: Bookmark; folderId?: number } | null>(null);
   const [renamingFolder, setRenamingFolder] = useState<Folder | null>(null);
   const [deletingFolder, setDeletingFolder] = useState<Folder | null>(null);
+  const [confirmingLogout, setConfirmingLogout] = useState(false);
   const [renameValue, setRenameValue] = useState('');
 
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const darkModeRef = useRef(darkMode);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const modalOpenRef = useRef(false);
-  modalOpenRef.current = showAddModal || !!editingBookmark || !!deletingBookmark || !!renamingFolder || !!deletingFolder;
+  modalOpenRef.current = showAddModal || !!editingBookmark || !!deletingBookmark || !!renamingFolder || !!deletingFolder || confirmingLogout;
 
   darkModeRef.current = darkMode;
 
@@ -213,10 +215,25 @@ export default function Popup() {
   }, []);
 
   const handleAddBookmark = useCallback(async (data: { title: string; url: string; tags: string; folders: string }) => {
-    const response = await sendMessage('ADD_BOOKMARK', data);
+    const existing = bookmarks.find((bookmark) => {
+      try { return new URL(bookmark.url).href === new URL(data.url).href; }
+      catch { return bookmark.url === data.url; }
+    });
+    const requestedFolders = data.folders
+      ? data.folders.split(',').map((id) => Number(id.trim())).filter((id) => Number.isInteger(id))
+      : [-1];
+    const response = existing
+      ? await sendMessage('EDIT_BOOKMARK', {
+          id: existing.id,
+          title: data.title,
+          url: data.url,
+          tags: data.tags,
+          folders: [...new Set([...existing.folders, ...requestedFolders])].join(','),
+        })
+      : await sendMessage('ADD_BOOKMARK', { ...data, folders: requestedFolders.join(',') });
     if (response.success) { await refreshData(); showToast('Bookmark added!', 'success'); }
     else throw new Error(response.error || 'Error adding the bookmark');
-  }, []);
+  }, [bookmarks]);
 
   const handleCreateFolder = useCallback(async (title: string, parentFolderId: number) => {
     const response = await sendMessage('CREATE_FOLDER', { title, parentFolderId });
@@ -243,39 +260,70 @@ export default function Popup() {
 
   const handleDeleteBookmarkConfirm = useCallback(async () => {
     if (!deletingBookmark) return;
-    const response = await sendMessage('DELETE_BOOKMARK', { id: deletingBookmark.id });
-    if (response.success) { await refreshData(); setDeletingBookmark(null); showToast('Bookmark deleted!', 'success'); }
-    else { showToast(response.error || 'Error during deletion', 'error'); setDeletingBookmark(null); }
+    try {
+      const { bookmark, folderId } = deletingBookmark;
+      if (folderId !== undefined) {
+        const remainingFolders = bookmark.folders.filter((id) => id !== folderId);
+        const response = await sendMessage('EDIT_BOOKMARK', {
+          id: bookmark.id,
+          title: bookmark.title,
+          url: bookmark.url,
+          tags: bookmark.tags.join(','),
+          folders: remainingFolders.join(','),
+        });
+        if (!response.success) throw new Error(response.error || 'Error removing the bookmark from the folder');
+        await refreshData(); setDeletingBookmark(null); showToast('Bookmark removed from folder', 'success');
+      } else {
+        const response = await sendMessage('DELETE_BOOKMARK', { id: bookmark.id });
+        if (!response.success) throw new Error(response.error || 'Error during deletion');
+        await refreshData(); setDeletingBookmark(null); showToast('Bookmark deleted everywhere', 'success');
+      }
+    } catch (err: unknown) {
+      showToast(err instanceof Error ? err.message : 'Connection error', 'error');
+    }
   }, [deletingBookmark]);
 
   const handleRenameFolderConfirm = useCallback(async () => {
     if (!renamingFolder || !renameValue.trim()) return;
-    const response = await sendMessage('RENAME_FOLDER', { id: renamingFolder.id, title: renameValue.trim() });
-    if (response.success) { await refreshData(); setRenamingFolder(null); setRenameValue(''); showToast('Folder renamed!', 'success'); }
-    else { showToast(response.error || 'Error during rename', 'error'); setRenamingFolder(null); setRenameValue(''); }
+    try {
+      const response = await sendMessage('RENAME_FOLDER', { id: renamingFolder.id, title: renameValue.trim() });
+      if (!response.success) throw new Error(response.error || 'Error during rename');
+      await refreshData(); setRenamingFolder(null); setRenameValue(''); showToast('Folder renamed!', 'success');
+    } catch (err: unknown) {
+      showToast(err instanceof Error ? err.message : 'Connection error', 'error');
+    }
   }, [renamingFolder, renameValue]);
 
   const handleDeleteFolderConfirm = useCallback(async () => {
     if (!deletingFolder) return;
-    const response = await sendMessage('DELETE_FOLDER', { id: deletingFolder.id });
-    if (response.success) {
-      await refreshData(); setDeletingFolder(null);
-      if (response.warning) {
-        showToast(response.warning, 'warning');
+    try {
+      const response = await sendMessage('DELETE_FOLDER', { id: deletingFolder.id });
+      if (response.success) {
+        await refreshData(); setDeletingFolder(null);
+        if (response.warning) {
+          showToast(response.warning, 'warning');
+        } else {
+          showToast('Folder deleted!', 'success');
+        }
       } else {
-        showToast('Folder deleted!', 'success');
+        throw new Error(response.error || 'Error during deletion');
       }
-    } else {
-      await refreshData();
-      showToast(response.error || 'Error during deletion', 'error');
-      setDeletingFolder(null);
+    } catch (err: unknown) {
+      showToast(err instanceof Error ? err.message : 'Connection error', 'error');
     }
   }, [deletingFolder]);
 
   const handleLogout = useCallback(async () => {
-    await sendMessage('LOGOUT');
-    setConfigured(false); setBookmarks([]); setFolders([]); setLastSync(null); setSearchQuery(''); setError(null);
-    showToast('Logged out', 'success');
+    try {
+      const response = await sendMessage('LOGOUT');
+      if (!response.success) throw new Error(response.error || 'Error during logout');
+      clearFaviconMemoryCache();
+      setConfirmingLogout(false);
+      setConfigured(false); setBookmarks([]); setFolders([]); setLastSync(null); setSearchQuery(''); setError(null);
+      showToast('Logged out', 'success');
+    } catch (err: unknown) {
+      showToast(err instanceof Error ? err.message : 'Connection error', 'error');
+    }
   }, []);
 
   const handleToggleDarkMode = useCallback(() => {
@@ -286,7 +334,7 @@ export default function Popup() {
   const handleSearch = useCallback((query: string) => { setSearchQuery(query); }, []);
 
   const foldersById = useMemo(() => {
-    const map = new Map<number, string>();
+    const map = new Map<number, string>([[-1, 'No folder']]);
     for (const f of folders) map.set(Number(f.id), f.title);
     return map;
   }, [folders]);
@@ -300,10 +348,10 @@ export default function Popup() {
     return bookmarks.map((b) => ({
       ...b,
       folders: b.folders.map((f) => {
-        if (typeof f === 'number') return foldersById.has(f) ? f : null;
+        if (typeof f === 'number') return f === -1 || foldersById.has(f) ? f : null;
         const n = Number(f);
         if (f.trim() !== '' && !isNaN(n) && String(n) === f.trim()) {
-          return foldersById.has(n) ? n : null;
+          return n === -1 || foldersById.has(n) ? n : null;
         }
         const id = titleToId.get(f);
         return id !== undefined ? id : null;
@@ -362,7 +410,7 @@ export default function Popup() {
   return (
     <>
     <div className="w-[400px] h-[600px] flex flex-col bg-white dark:bg-gray-900 relative overflow-hidden">
-      <Header syncing={syncing} darkMode={darkMode} resolvedDark={resolvedDark} onSync={handleSync} onLogout={handleLogout} onToggleDarkMode={handleToggleDarkMode} />
+      <Header syncing={syncing} darkMode={darkMode} resolvedDark={resolvedDark} onSync={handleSync} onLogout={() => setConfirmingLogout(true)} onToggleDarkMode={handleToggleDarkMode} />
 
       <SearchBar ref={searchInputRef} onSearch={handleSearch} />
 
@@ -382,7 +430,7 @@ export default function Popup() {
           grouped={!searchQuery}
           folders={folders}
           onEditBookmark={setEditingBookmark}
-          onDeleteBookmark={setDeletingBookmark}
+          onDeleteBookmark={(bookmark, folderId) => setDeletingBookmark({ bookmark, folderId })}
           onRenameFolder={(f) => { setRenamingFolder(f); setRenameValue(f.title); }}
           onDeleteFolder={setDeletingFolder}
         />
@@ -411,8 +459,11 @@ export default function Popup() {
 
       {deletingBookmark && (
         <ConfirmDialog
-          title="Delete bookmark"
-          message={`Delete "${deletingBookmark.title}"?`}
+          title={deletingBookmark.folderId !== undefined ? 'Remove from folder' : 'Delete bookmark everywhere'}
+          message={deletingBookmark.folderId !== undefined
+            ? `Remove "${deletingBookmark.bookmark.title}" from "${foldersById.get(deletingBookmark.folderId) || 'this folder'}"? It will remain in its other folders.`
+            : `Permanently delete "${deletingBookmark.bookmark.title}" from every folder?`}
+          confirmLabel={deletingBookmark.folderId !== undefined ? 'Remove' : 'Delete everywhere'}
           onConfirm={handleDeleteBookmarkConfirm}
           onCancel={() => setDeletingBookmark(null)}
         />
@@ -434,6 +485,16 @@ export default function Popup() {
           confirmLabel="Delete folder"
           onConfirm={handleDeleteFolderConfirm}
           onCancel={() => setDeletingFolder(null)}
+        />
+      )}
+
+      {confirmingLogout && (
+        <ConfirmDialog
+          title="Log out"
+          message="Disconnect this Nextcloud account and clear its locally cached bookmarks?"
+          confirmLabel="Log out"
+          onConfirm={handleLogout}
+          onCancel={() => setConfirmingLogout(false)}
         />
       )}
 

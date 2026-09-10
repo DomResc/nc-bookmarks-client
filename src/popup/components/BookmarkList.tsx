@@ -16,7 +16,7 @@ interface BookmarkListProps {
   grouped?: boolean;
   folders?: Folder[];
   onEditBookmark: (bookmark: Bookmark) => void;
-  onDeleteBookmark: (bookmark: Bookmark) => void;
+  onDeleteBookmark: (bookmark: Bookmark, folderId?: number) => void;
   onRenameFolder: (folder: Folder) => void;
   onDeleteFolder: (folder: Folder) => void;
 }
@@ -36,13 +36,13 @@ function buildTree(folders: Folder[], bookmarks: Bookmark[]): { roots: FolderNod
 
   for (const b of bookmarks) {
     const folderIds = b.folders.filter((f): f is number => typeof f === 'number');
-    if (folderIds.length === 0) {
+    if (folderIds.length === 0 || folderIds.includes(-1)) {
       uncategorized.push(b);
-    } else {
-      for (const id of folderIds) {
-        if (!byFolderId.has(id)) byFolderId.set(id, []);
-        byFolderId.get(id)!.push(b);
-      }
+    }
+    for (const id of folderIds) {
+      if (id === -1) continue;
+      if (!byFolderId.has(id)) byFolderId.set(id, []);
+      byFolderId.get(id)!.push(b);
     }
   }
 
@@ -131,7 +131,7 @@ interface FolderTreeNodeProps {
   searchQuery: string;
   onOpen: (url: string, background: boolean) => void;
   onEditBookmark: (bookmark: Bookmark) => void;
-  onDeleteBookmark: (bookmark: Bookmark) => void;
+  onDeleteBookmark: (bookmark: Bookmark, folderId?: number) => void;
   onRenameFolder: (folder: Folder) => void;
   onDeleteFolder: (folder: Folder) => void;
 }
@@ -182,7 +182,7 @@ function FolderTreeNode({
             ariaLabel="Folder menu"
             hoverGroup="group-hover/folder"
             triggerIconSize={14}
-            triggerClassName="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400 dark:text-gray-500 transition-opacity"
+            triggerClassName="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400 dark:text-gray-500 transition-opacity"
             wrapperClassName="shrink-0"
             menuClassName="min-w-[130px]"
             items={[
@@ -251,6 +251,7 @@ function FolderTreeNode({
                       onDelete={onDeleteBookmark}
                       showFolderChips={false}
                       folderTitles={folderTitles}
+                      folderContextId={node.id}
                     />
                   ))}
                 </div>
@@ -317,7 +318,7 @@ export default function BookmarkList({ bookmarks, searchQuery, grouped, folders,
     });
   }
 
-  if (bookmarks.length === 0) {
+  if (bookmarks.length === 0 && (!grouped || !folders || folders.length === 0)) {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-gray-300 dark:text-gray-600 mb-3">
@@ -361,6 +362,7 @@ export default function BookmarkList({ bookmarks, searchQuery, grouped, folders,
                 onDelete={onDeleteBookmark}
                 showFolderChips
                 folderTitles={folderTitles}
+                folderContextId={bm.folders.some((id) => id !== -1) ? -1 : undefined}
               />
             ))}
           </div>

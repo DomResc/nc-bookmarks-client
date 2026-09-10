@@ -5,6 +5,10 @@ import DropdownMenu from './DropdownMenu';
 
 const faviconCache = new Map<number, string | null>();
 
+export function clearFaviconMemoryCache() {
+  faviconCache.clear();
+}
+
 function Favicon({ id }: { id: number }) {
   const [dataUrl, setDataUrl] = useState<string | null>(faviconCache.get(id) ?? null);
 
@@ -38,12 +42,13 @@ interface BookmarkItemProps {
   searchQuery: string;
   onOpen: (url: string, background: boolean) => void;
   onEdit: (bookmark: Bookmark) => void;
-  onDelete: (bookmark: Bookmark) => void;
+  onDelete: (bookmark: Bookmark, folderId?: number) => void;
   showFolderChips?: boolean;
   folderTitles?: Map<number, string>;
+  folderContextId?: number;
 }
 
-export default function BookmarkItem({ bookmark, searchQuery, onOpen, onEdit, onDelete, showFolderChips = true, folderTitles }: BookmarkItemProps) {
+export default function BookmarkItem({ bookmark, searchQuery, onOpen, onEdit, onDelete, showFolderChips = true, folderTitles, folderContextId }: BookmarkItemProps) {
   const displayUrl = bookmark.url.length > 55
     ? bookmark.url.substring(0, 52) + '...'
     : bookmark.url;
@@ -88,7 +93,7 @@ export default function BookmarkItem({ bookmark, searchQuery, onOpen, onEdit, on
               ))}
               {showFolderChips && bookmark.folders.map((folder) => {
                 const label = typeof folder === 'number'
-                  ? (folderTitles?.get(folder) ?? String(folder))
+                  ? (folder === -1 ? 'No folder' : (folderTitles?.get(folder) ?? String(folder)))
                   : folder;
                 return (
                   <span key={`folder-${folder}`} className="text-[11px] px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
@@ -104,7 +109,7 @@ export default function BookmarkItem({ bookmark, searchQuery, onOpen, onEdit, on
       <DropdownMenu
         ariaLabel="Menu"
         hoverGroup="group-hover"
-        wrapperClassName="absolute right-1 top-2"
+        wrapperClassName="absolute right-1 top-1"
         items={[
           {
             label: 'Edit',
@@ -117,9 +122,9 @@ export default function BookmarkItem({ bookmark, searchQuery, onOpen, onEdit, on
             ),
           },
           {
-            label: 'Delete',
+            label: folderContextId !== undefined ? 'Remove from folder' : 'Delete everywhere',
             danger: true,
-            onClick: () => onDelete(bookmark),
+            onClick: () => onDelete(bookmark, folderContextId),
             icon: (
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />

@@ -152,7 +152,7 @@ When editing a bookmark that belongs to multiple folders, the modal manages the 
 
 Basic Auth on every HTTP request to Nextcloud. The app password is encrypted with AES-GCM (Web Crypto API, locally generated 256-bit key) and stored together with the key in `chrome.storage.local` (never cloud-synced). Credentials are base64-encoded as UTF-8, so non-ASCII characters are supported. Anyone running code in the extension context can still read the decrypted password at runtime: encryption protects against casual storage inspection and multi-device sync exposure, not against an attacker with access to the device itself.
 
-Only `http:`/`https:` bookmark URLs are opened in new tabs; other schemes are rejected.
+Only valid `http:`/`https:` bookmark URLs can be saved or opened; malformed URLs and other schemes are rejected with an actionable error.
 
 ## Nextcloud APIs used
 
@@ -177,7 +177,7 @@ Authentication uses the `Authorization: Basic <base64(username:appPassword)>` he
 |---|------|-----------|----------|
 | 1 | Initial setup | Open popup without credentials | Setup screen |
 | 2 | Automatic login | Enter server URL, click Connect, authenticate in the opened tab | Permission request → login tab → background completion (within ~1 min) → bookmark list |
-| 3 | Non-HTTPS URL | Enter an `http://` URL | Error "An HTTPS URL is required for security reasons" |
+| 3 | Non-HTTPS server URL | Enter an `http://` server URL during setup | Error "An HTTPS URL is required for security reasons" |
 | 4 | Search | Type in the search bar | Case-insensitive filter, matches highlighted in yellow |
 | 5 | Empty search | Search for a nonexistent string | "No results" message |
 | 6 | Open bookmark | Click an item | Left click: URL opened in the current tab (popup closes); middle click: opened in a background tab |
@@ -199,6 +199,17 @@ Authentication uses the `Authorization: Basic <base64(username:appPassword)>` he
 | 22 | Error handling | Disconnect network, click Sync | Red error banner with message |
 | 23 | Permissions | After setup, check chrome://extensions | Only the configured server origin |
 | 24 | Typecheck | `npm run typecheck` | No errors (also enforced by `npm run build`) |
+| 25 | Item menus | Open “⋯” on a bookmark and a folder, including near the bottom edge | Menu stays visible, remains inside the popup and exposes the relevant actions |
+| 26 | Menu keyboard access | Focus “⋯”, then use Enter, arrows, Home/End and Escape | Items receive focus, arrows move it and Escape restores focus to the trigger |
+| 27 | Empty folders | Use an account with folders but no bookmarks | Folder tree remains visible and its rename/delete actions work |
+| 28 | Invalid bookmark URL | Add or edit a bookmark with a malformed, `chrome:`, `data:` or `javascript:` URL | Save is blocked with an actionable error |
+| 29 | Duplicate submission | Double-click a delete, rename or logout confirmation | Only one request is sent while the action shows progress |
+| 30 | Failed logout | Make extension storage unavailable or interrupt the service worker during logout | The account view remains open and an error is shown |
+| 31 | Search cleanup | Type a query and immediately log out before the debounce expires | The old query does not affect the next login |
+| 32 | Multi-folder removal | Put one bookmark in two folders, then use its menu inside one folder | “Remove from folder” removes only that membership; the bookmark remains in the other folder |
+| 33 | Global bookmark deletion | Search for a multi-folder bookmark and choose “Delete everywhere” | Confirmation explicitly warns that the bookmark will be removed from every folder |
+| 34 | Root plus folder membership | Add a bookmark to No folder, then add the same URL to a regular folder | The single bookmark remains visible in both No folder and the regular folder |
+| 35 | Remove root membership | For a bookmark in No folder and another folder, choose “Remove from folder” from its No folder entry | Only the root membership is removed; the bookmark remains in the regular folder |
 
 ## Technologies
 

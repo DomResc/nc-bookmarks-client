@@ -25,7 +25,7 @@ export default function Header({ syncing, darkMode, resolvedDark, onSync, onLogo
       <div className="flex items-center gap-0.5">
         <button
           onClick={onToggleDarkMode}
-          className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors"
+          className="p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors"
           title={themeTitle}
         >
           {darkMode === 'dark' ? (
@@ -55,7 +55,7 @@ export default function Header({ syncing, darkMode, resolvedDark, onSync, onLogo
         <button
           onClick={onSync}
           disabled={syncing}
-          className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors disabled:opacity-50"
+          className="p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors disabled:opacity-50"
           title="Sync"
         >
           {syncing ? (
@@ -69,7 +69,7 @@ export default function Header({ syncing, darkMode, resolvedDark, onSync, onLogo
         </button>
         <button
           onClick={onLogout}
-          className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors"
+          className="p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors"
           title="Log out"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
