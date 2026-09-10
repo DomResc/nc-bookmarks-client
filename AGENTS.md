@@ -14,7 +14,7 @@ Chrome/Chromium MV3 extension (React 18 + strict TypeScript + Tailwind v4) actin
 
 - `package.json` and `manifest.json` versions must stay in sync: the release workflow (push a `v*` tag) hard-fails on mismatch. Bump both when changing the extension version.
 - ESLint config is deliberate: `eqeqeq` with `null: 'ignore'` (use `!= null` on purpose), `no-console` allows only `warn`/`error`, unused vars are allowed when prefixed `_`.
-- Commit messages use conventional prefixes (`feat:`, `ci:`, `deps-dev:`) — see `git log`.
+- Commit messages use conventional prefixes (`feat:`, `fix:`, `ci:`, `deps:`) — see `git log`.
 
 ## Architecture
 
@@ -28,6 +28,8 @@ Chrome/Chromium MV3 extension (React 18 + strict TypeScript + Tailwind v4) actin
 - Only `http:`/`https:` bookmark URLs are opened; other schemes are deliberately rejected.
 - API paths and time thresholds live in `src/utils/constants.ts`; API calls in `src/utils/api.ts`; cache helpers in `src/utils/storage.ts`.
 
-## CI gotchas
+## GitHub automation
 
-- `ci.yml` uploads the `dist/` build as an artifact for manual Chrome loading.
+- Keep `.github/workflows/ci.yml`: it validates pull requests and pushes to `master`, then uploads `dist/` for manual Chrome loading.
+- Keep `.github/workflows/release.yml`: a pushed `v*` tag builds and publishes the ZIP release after checking version alignment.
+- Dependency updates are handled manually. Do not add scheduled Dependabot updates or CodeQL analysis unless explicitly requested.

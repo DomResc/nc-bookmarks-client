@@ -34,6 +34,15 @@ npm run watch        # development mode with automatic rebuild
 npm run clean        # remove dist/
 ```
 
+## GitHub automation
+
+The repository intentionally keeps two GitHub Actions workflows:
+
+- **CI** runs on pull requests and pushes to `master`. It installs dependencies, runs lint and builds the extension (including typecheck), then uploads `dist/` as a temporary artifact for manual Chrome testing.
+- **Release** runs only when a `v*` tag is pushed. It verifies that the tag, `package.json` and `manifest.json` versions match, builds the extension, packages `dist/` as a ZIP and publishes the GitHub Release.
+
+Dependency updates are managed manually; scheduled Dependabot updates and CodeQL analysis are not enabled in this repository.
+
 ## Installation in Chrome
 
 The extension is not published on the Chrome Web Store: it is distributed through this repository only.
