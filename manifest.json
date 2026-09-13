@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Nextcloud Bookmarks Client",
   "short_name": "NC Bookmarks",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Client for Nextcloud bookmarks",
   "permissions": [
     "storage",

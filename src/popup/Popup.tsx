@@ -165,6 +165,15 @@ export default function Popup() {
   }, []);
 
   useEffect(() => {
+    // Chrome normally dismisses action popups when they lose focus. Some
+    // desktop environments can leave the dismissed surface visible, so close
+    // it explicitly instead of letting the next click hit a stale popup.
+    const handleBlur = () => window.close();
+    window.addEventListener('blur', handleBlur);
+    return () => window.removeEventListener('blur', handleBlur);
+  }, []);
+
+  useEffect(() => {
     function handleGlobalKeyDown(e: KeyboardEvent) {
       if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey) return;
       if (modalOpenRef.current) return;
