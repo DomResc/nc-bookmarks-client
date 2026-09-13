@@ -362,7 +362,7 @@ export default function BookmarkList({ bookmarks, searchQuery, grouped, folders,
                 onDelete={onDeleteBookmark}
                 showFolderChips
                 folderTitles={folderTitles}
-                folderContextId={bm.folders.some((id) => id !== -1) ? -1 : undefined}
+                folderContextId={-1}
               />
             ))}
           </div>

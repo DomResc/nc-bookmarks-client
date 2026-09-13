@@ -210,6 +210,7 @@ Authentication uses the `Authorization: Basic <base64(username:appPassword)>` he
 | 33 | Global bookmark deletion | Search for a multi-folder bookmark and choose “Delete everywhere” | Confirmation explicitly warns that the bookmark will be removed from every folder |
 | 34 | Root plus folder membership | Add a bookmark to No folder, then add the same URL to a regular folder | The single bookmark remains visible in both No folder and the regular folder |
 | 35 | Remove root membership | For a bookmark in No folder and another folder, choose “Remove from folder” from its No folder entry | Only the root membership is removed; the bookmark remains in the regular folder |
+| 36 | Remove sole root membership | For a bookmark that appears only in No folder, open its menu | The action is named “Remove from folder”, not “Delete everywhere” |
 
 ## Technologies
 
